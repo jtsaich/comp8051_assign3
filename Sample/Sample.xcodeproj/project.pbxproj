@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		042CE3F41C9C69E800C8D583 /* dog.png in Resources */ = {isa = PBXBuildFile; fileRef = 042CE3F31C9C69E800C8D583 /* dog.png */; };
 		045092141C8A777B008B11D2 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 045092131C8A777B008B11D2 /* main.m */; };
 		045092171C8A777B008B11D2 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 045092161C8A777B008B11D2 /* AppDelegate.m */; };
 		045092191C8A777B008B11D2 /* Shader.fsh in Resources */ = {isa = PBXBuildFile; fileRef = 045092181C8A777B008B11D2 /* Shader.fsh */; };
@@ -46,6 +47,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		042CE3F31C9C69E800C8D583 /* dog.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dog.png; sourceTree = "<group>"; };
+		043730DF1C9C549500BFC96F /* dog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dog.h; sourceTree = "<group>"; };
+		043730E21C9C5C1B00BFC96F /* cube.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cube.h; sourceTree = "<group>"; };
+		043730E81C9C638200BFC96F /* cube.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cube.c; sourceTree = "<group>"; };
+		043730E91C9C638200BFC96F /* dog.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dog.c; sourceTree = "<group>"; };
 		0450920F1C8A777B008B11D2 /* Sample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		045092131C8A777B008B11D2 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		045092151C8A777B008B11D2 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -126,6 +132,11 @@
 		045092111C8A777B008B11D2 /* Sample */ = {
 			isa = PBXGroup;
 			children = (
+				043730E21C9C5C1B00BFC96F /* cube.h */,
+				043730E81C9C638200BFC96F /* cube.c */,
+				043730DF1C9C549500BFC96F /* dog.h */,
+				043730E91C9C638200BFC96F /* dog.c */,
+				042CE3F31C9C69E800C8D583 /* dog.png */,
 				045092A21C8AAF9B008B11D2 /* floor.jpg */,
 				045092A31C8AAF9B008B11D2 /* wall.jpg */,
 				045092A41C8AAF9B008B11D2 /* wall2.jpg */,
@@ -186,8 +197,8 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 045092401C8A777B008B11D2 /* Build configuration list for PBXNativeTarget "Sample" */;
 			buildPhases = (
-				0450920B1C8A777B008B11D2 /* Sources */,
 				0450920C1C8A777B008B11D2 /* Frameworks */,
+				0450920B1C8A777B008B11D2 /* Sources */,
 				0450920D1C8A777B008B11D2 /* Resources */,
 			);
 			buildRules = (
@@ -282,6 +293,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				042CE3F41C9C69E800C8D583 /* dog.png in Resources */,
 				045092211C8A777B008B11D2 /* Main.storyboard in Resources */,
 				045092AA1C8AAF9B008B11D2 /* wall3.jpg in Resources */,
 				0450921B1C8A777B008B11D2 /* Shader.vsh in Resources */,
@@ -413,7 +425,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -451,7 +463,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -552,6 +564,7 @@
 				045092421C8A777B008B11D2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		045092431C8A777B008B11D2 /* Build configuration list for PBXNativeTarget "SampleTests" */ = {
 			isa = XCConfigurationList;
@@ -560,6 +573,7 @@
 				045092451C8A777B008B11D2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		045092461C8A777B008B11D2 /* Build configuration list for PBXNativeTarget "SampleUITests" */ = {
 			isa = XCConfigurationList;
@@ -568,6 +582,7 @@
 				045092481C8A777B008B11D2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -10,6 +10,8 @@
 #import <OpenGLES/ES2/glext.h>
 
 #import "CMazeHandler.h"
+#import "cube.h"
+#import "dog.h"
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
@@ -102,6 +104,10 @@ GLuint planeIndices[] =
     GLKMatrix3 _crateNormalMatrix[6];
     GLKMatrix4 _crateModelViewMatrix[16];
     
+    GLKMatrix4 _dogModelViewProjectionmatrix;
+    GLKMatrix3 _dogNormalMatrix;
+    GLKMatrix4 _dogModelViewMatrix;
+    
     
     GLKMatrix4 _projectionMatrix;
     int _cameraDirection;
@@ -130,11 +136,21 @@ GLuint planeIndices[] =
     GLuint wall3Texture;
     GLuint wall4Texture;
     GLuint crateTexture;
+    GLuint dogTexture;
     
-    GLuint _vertexArray;
-    GLuint _vertexBuffers[4];
+    
+    GLuint _vertexArray[2];
+    
+    // plane
+    GLuint _vertexBuffers[3];
     GLuint _indexBuffer;
-    GLuint _textureBuffers[6];
+    
+    // dog modle
+    GLuint _dogVerteBuffers[3];
+    GLuint _dogIndexBuffer;
+    
+    
+    GLuint _textureBuffers[7];
     
     CGPoint _dragOldLocation;
     GLfloat _cameraYRotation;
@@ -239,8 +255,8 @@ GLuint planeIndices[] =
     glEnable(GL_CULL_FACE);
     
     // setup VBOs/VAOs
-    glGenVertexArraysOES(1, &_vertexArray);
-    glBindVertexArrayOES(_vertexArray);
+    glGenVertexArraysOES(2, _vertexArray);
+    glBindVertexArrayOES(_vertexArray[0]);
 
     glGenBuffers(3, _vertexBuffers);
     glGenBuffers(1, &_indexBuffer);
@@ -266,6 +282,29 @@ GLuint planeIndices[] =
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(planeIndices), planeIndices, GL_STATIC_DRAW);
     
+    
+    glBindVertexArrayOES(_vertexArray[1]);
+    
+    glGenBuffers(3, _dogVerteBuffers);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, _dogVerteBuffers[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*3*dogVertices, dogPositions, GL_STATIC_DRAW);
+    
+    glEnableVertexAttribArray(GLKVertexAttribPosition);
+    glVertexAttribPointer(GLKVertexAttribPosition, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), BUFFER_OFFSET(0));
+    
+    glBindBuffer(GL_ARRAY_BUFFER, _dogVerteBuffers[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*3*dogVertices, dogNormals, GL_STATIC_DRAW);
+    
+    glEnableVertexAttribArray(GLKVertexAttribNormal);
+    glVertexAttribPointer(GLKVertexAttribNormal, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), BUFFER_OFFSET(0));
+    
+    glBindBuffer(GL_ARRAY_BUFFER, _dogVerteBuffers[2]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*3*dogVertices, dogTexels, GL_STATIC_DRAW);
+    
+    glEnableVertexAttribArray(GLKVertexAttribTexCoord0);
+    glVertexAttribPointer(GLKVertexAttribTexCoord0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), BUFFER_OFFSET(0));
+    
     glBindVertexArrayOES(0);
     
     // load textures
@@ -275,6 +314,7 @@ GLuint planeIndices[] =
     wall3Texture = [self setupTexture:@"wall3.jpg"];
     wall4Texture = [self setupTexture:@"wall4.jpg"];
     crateTexture = [self setupTexture:@"crate.jpg"];
+    dogTexture = [self setupTexture:@"dog.png"];
     
     
 }
@@ -374,8 +414,8 @@ GLuint planeIndices[] =
     
     
     // generate movelViewMatrix of the rotating crate
-    GLKMatrix4 baseModelViewMatrix = GLKMatrix4Identity;
-    baseModelViewMatrix = GLKMatrix4Translate(baseModelViewMatrix, 0, 0, -1);
+    GLKMatrix4 baseModelViewMatrix = GLKMatrix4MakeTranslation(0, 0, -1);
+    
     for (int i = 0; i < 6; i++) {
         _crateModelViewMatrix[i] = GLKMatrix4Identity;
         
@@ -414,6 +454,14 @@ GLuint planeIndices[] =
         _crateModelViewProjectionMatrix[i] = GLKMatrix4Multiply(_projectionMatrix, _crateModelViewMatrix[i]);
     }
     
+    _dogModelViewMatrix = GLKMatrix4Identity;
+    _dogModelViewMatrix = GLKMatrix4Translate(_dogModelViewMatrix, 0, -0.5f, 0);
+    _dogModelViewMatrix = GLKMatrix4Scale(_dogModelViewMatrix, 0.05f, 0.05f, 0.05f);
+    _dogModelViewMatrix = GLKMatrix4RotateY(_dogModelViewMatrix, M_PI_2);
+    _dogModelViewMatrix = GLKMatrix4Multiply(baseModelViewMatrix, _dogModelViewMatrix);
+    _dogNormalMatrix = GLKMatrix3InvertAndTranspose(GLKMatrix4GetMatrix3(_dogModelViewMatrix), NULL);
+    _dogModelViewProjectionmatrix = GLKMatrix4Multiply(_projectionMatrix, _dogModelViewMatrix);
+    
     _crateRotation += self.timeSinceLastUpdate * 0.5f;
 }
 
@@ -422,7 +470,6 @@ GLuint planeIndices[] =
     glClearColor(0.65f, 0.65f, 0.65f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    glBindVertexArrayOES(_vertexArray);
     
     // Render the object again with ES2
     glUseProgram(_program);
@@ -435,6 +482,17 @@ GLuint planeIndices[] =
     glUniform4fv(uniforms[UNIFORM_AMBIENT_COMPONENT], 1, ambientComponent.v);
     glUniform1f(uniforms[UNIFORM_FOG_DENSITY], fogDensity);
     
+    
+    glBindVertexArrayOES(_vertexArray[1]);
+    
+    glBindTexture(GL_TEXTURE_2D, dogTexture);
+    glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _dogModelViewProjectionmatrix.m);
+    glUniformMatrix3fv(uniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _dogNormalMatrix.m);
+    glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEW_MATRIX], 1, 0, _dogModelViewMatrix.m);
+    glDrawArrays(GL_TRIANGLES, 0, dogVertices);
+    
+    
+    glBindVertexArrayOES(_vertexArray[0]);
     // draw crate
     for (int i = 0; i < 6; i++) {
         glBindTexture(GL_TEXTURE_2D, crateTexture);
