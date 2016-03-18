@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9532" systemVersion="15D21" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BV1-FR-VrT">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9530"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+    </dependencies>
+    <scenes>
+        <!--Game View Controller-->
+        <scene sceneID="tXr-a1-R10">
+            <objects>
+                <viewController id="BV1-FR-VrT" customClass="GameViewController" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="8aa-yV-Osq"/>
+                        <viewControllerLayoutGuide type="bottom" id="qHh-Mt-9TT"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="3se-qz-xqx" customClass="GLKView">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="WdE-3d-zbu">
+                                <rect key="frame" x="461" y="512" width="119" height="30"/>
+                                <state key="normal" title="Toggle Day/Night"/>
+                                <connections>
+                                    <action selector="toggleDayNight:" destination="BV1-FR-VrT" eventType="touchUpInside" id="1tJ-RL-FTw"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="aDp-Iy-22e">
+                                <rect key="frame" x="463" y="550" width="117" height="30"/>
+                                <state key="normal" title="Toggle Flashlight"/>
+                                <connections>
+                                    <action selector="toggleFlashLight:" destination="BV1-FR-VrT" eventType="touchUpInside" id="GFd-gl-hdU"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7i2-xq-2Up">
+                                <rect key="frame" x="503" y="474" width="77" height="30"/>
+                                <state key="normal" title="Toggle Fog"/>
+                                <connections>
+                                    <action selector="toggleFog:" destination="BV1-FR-VrT" eventType="touchUpInside" id="alB-OI-3Lc"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstAttribute="trailingMargin" secondItem="7i2-xq-2Up" secondAttribute="trailing" id="FMP-Pw-hWE"/>
+                            <constraint firstItem="aDp-Iy-22e" firstAttribute="top" secondItem="WdE-3d-zbu" secondAttribute="bottom" constant="8" id="Hit-r5-Aky"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="WdE-3d-zbu" secondAttribute="trailing" id="Put-RJ-zWt"/>
+                            <constraint firstItem="WdE-3d-zbu" firstAttribute="top" secondItem="7i2-xq-2Up" secondAttribute="bottom" constant="8" id="SxM-x1-Dne"/>
+                            <constraint firstItem="qHh-Mt-9TT" firstAttribute="top" secondItem="aDp-Iy-22e" secondAttribute="bottom" constant="20" id="wM7-tV-7AR"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="aDp-Iy-22e" secondAttribute="trailing" id="ycP-Ca-Cxr"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="SZV-WD-TEh" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="394" y="233"/>
+        </scene>
+    </scenes>
+</document>
