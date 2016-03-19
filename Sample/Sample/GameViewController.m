@@ -264,6 +264,7 @@ GLuint planeIndices[] =
     modelRotation = 0;
     deltaX = 0.01;
     deltaZ = 0.01;
+    drawWalls = true;
     
 }
 
@@ -944,8 +945,8 @@ GLuint planeIndices[] =
             NSLog(@"Floor z position: %f", floorf(modelPosition.z));
             modelPosition.z = -3;
             modelRotation = M_PI_2;
-        } else if ([self.maze southWallPresent:fabsf(floorf(modelPosition.x)) col:fabsf(ceilf(modelPosition.z))]) {
-            if (CGRectIntersectsRect(dogRect, CGRectMake(floorf(modelPosition.x), ceilf(modelPosition.z) - 0.5f, 1, 0.001f))) {
+        } else if ([self.maze southWallPresent:fabsf(roundf(modelPosition.x)) col:fabsf(roundf(modelPosition.z))]) {
+            if (CGRectIntersectsRect(dogRect, CGRectMake(roundf(modelPosition.x), roundf(modelPosition.z) - 0.5f, 1, 0.001f))) {
                 NSLog(@"Will intersect wall");
                 modelRotation = M_PI_2;
             }
@@ -955,19 +956,19 @@ GLuint planeIndices[] =
         if (floorf(modelPosition.x) > 2) {
             modelPosition.x = 3;
             modelRotation = M_PI;
-        } else if ([self.maze westWallPresent:fabsf(floorf(modelPosition.x)) col:fabsf(ceilf(modelPosition.z))]) {
-            if (CGRectIntersectsRect(dogRect, CGRectMake(floorf(modelPosition.x) + 0.5f, ceilf(modelPosition.z), 0.001f, 1))) {
+        } else if ([self.maze westWallPresent:fabsf(roundf(modelPosition.x)) col:fabsf(roundf(modelPosition.z))]) {
+            if (CGRectIntersectsRect(dogRect, CGRectMake(roundf(modelPosition.x) + 0.5f, roundf(modelPosition.z), 0.001f, 1))) {
                 NSLog(@"Will intersect wall");
                 modelRotation = M_PI;
             }
         }
     } else if (modelRotation <= M_PI + 0.01f && modelRotation >= M_PI - 0.01f) {
         dogRect = CGRectOffset(dogRect, 0, 0.5f);
-        if (floorf(modelPosition.z) < 0) {
+        if (ceilf(modelPosition.z) > 0) {
             modelPosition.z = 0;
             modelRotation = -M_PI_2;
-        } else if ([self.maze northWallPresent:fabsf(floorf(modelPosition.x)) col:fabsf(ceilf(modelPosition.z))]) {
-            if (CGRectIntersectsRect(dogRect, CGRectMake(floorf(modelPosition.x), ceilf(modelPosition.z) -0.5f, 1, 0.001f))) {
+        } else if ([self.maze northWallPresent:fabsf(roundf(modelPosition.x)) col:fabsf(roundf(modelPosition.z))]) {
+            if (CGRectIntersectsRect(dogRect, CGRectMake(roundf(modelPosition.x), roundf(modelPosition.z) -0.5f, 1, 0.001f))) {
                 NSLog(@"Will intersect wall");
                 modelRotation = -M_PI_2;
             }
@@ -977,8 +978,8 @@ GLuint planeIndices[] =
         if (floorf(modelPosition.x) < 0) {
             modelPosition.x = 0;
             modelRotation = 0;
-        } else if ([self.maze eastWallPresent:fabsf(floorf(modelPosition.x)) col:fabsf(ceilf(modelPosition.z))]) {
-            if (CGRectIntersectsRect(dogRect, CGRectMake(floorf(modelPosition.x) + 0.5f, ceilf(modelPosition.z), 0.001f, 1))) {
+        } else if ([self.maze eastWallPresent:fabsf(roundf(modelPosition.x)) col:fabsf(roundf(modelPosition.z))]) {
+            if (CGRectIntersectsRect(dogRect, CGRectMake(roundf(modelPosition.x) + 0.5f, roundf(modelPosition.z), 0.001f, 1))) {
                 NSLog(@"Will intersect wall");
                 modelRotation = 0;
             }
