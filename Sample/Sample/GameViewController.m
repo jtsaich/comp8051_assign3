@@ -162,6 +162,13 @@ GLuint planeIndices[] =
     GLKVector3 modelPosition;
     float modelScale;
     float modelRotation;
+    
+    
+    GLKVector3 _wallBBoxSize;
+    GLKVector3 _dogBBoxSize;
+    
+    bool drawWalls;
+    
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -198,10 +205,32 @@ GLuint planeIndices[] =
     
     [self setupGL];
     
+    // bounding boxes
+    // Iterate through the points and find the min and max points
+    GLKVector3 bboxMin = GLKVector3Make(9999, 9999, 9999);
+    GLKVector3 bboxMax = GLKVector3Make(-9999, -9999, -9999);
+    
+    
+    // Retrieve a list of 2D points from the vertices list
+    for (int i = 0; i < dogVertices; i += 3)
+    {
+        GLKVector3 vec = GLKVector3Make(dogPositions[i], dogPositions[i+1], dogPositions[i+2]);
+        bboxMin = GLKVector3Minimum(bboxMin, vec);
+        bboxMax = GLKVector3Maximum(bboxMax, vec);
+        
+    }
+    _dogBBoxSize = GLKVector3Make(bboxMax.x - bboxMin.x, bboxMax.y - bboxMin.y, bboxMax.z - bboxMin.z);
+    
+    
     // touch inputs
     UITapGestureRecognizer *doubleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(hanldeDoubleTapFrom:)];
     doubleTapRecognizer.numberOfTapsRequired = 2;
     [self.view addGestureRecognizer:doubleTapRecognizer];
+    
+    UITapGestureRecognizer *doubleFingerTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(toggleWall:)];
+    doubleFingerTapRecognizer.numberOfTapsRequired = 2;
+    doubleFingerTapRecognizer.numberOfTouchesRequired = 2;
+    [self.view addGestureRecognizer:doubleFingerTapRecognizer];
     
     
     UIPanGestureRecognizer *dragRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handleDragFrom:)];
@@ -213,7 +242,7 @@ GLuint planeIndices[] =
     
     UITapGestureRecognizer *tripleFingerTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(toggleModelMovement:)];
     tripleFingerTap.numberOfTapsRequired = 2;
-    tripleFingerTap.numberOfTouchesRequired = 2;
+    tripleFingerTap.numberOfTouchesRequired = 3;
     [self.view addGestureRecognizer:tripleFingerTap];
     
     UIPanGestureRecognizer *modelMoveGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveModel:)];
@@ -495,9 +524,9 @@ GLuint planeIndices[] =
     _dogModelViewMatrix = GLKMatrix4Translate(_dogModelViewMatrix, 0, -0.5f, 0);
     _dogModelViewMatrix = GLKMatrix4TranslateWithVector3(_dogModelViewMatrix, modelPosition);
     _dogModelViewMatrix = GLKMatrix4Scale(_dogModelViewMatrix, modelScale, modelScale, modelScale);
-    _dogModelViewMatrix = GLKMatrix4RotateY(_dogModelViewMatrix, modelRotation);
+    _dogModelViewMatrix = GLKMatrix4RotateY(_dogModelViewMatrix, -modelRotation);
     // _dogModelViewMatrix = GLKMatrix4Scale(_dogModelViewMatrix, 0.05f, 0.05f, 0.05f);
-    _dogModelViewMatrix = GLKMatrix4RotateY(_dogModelViewMatrix, M_PI_2);
+//    _dogModelViewMatrix = GLKMatrix4RotateY(_dogModelViewMatrix, M_PI_2);
     // _dogModelViewMatrix = GLKMatrix4Multiply(baseModelViewMatrix, _dogModelViewMatrix);
     _dogNormalMatrix = GLKMatrix3InvertAndTranspose(GLKMatrix4GetMatrix3(_dogModelViewMatrix), NULL);
     _dogModelViewProjectionmatrix = GLKMatrix4Multiply(_projectionMatrix, _dogModelViewMatrix);
@@ -537,16 +566,16 @@ GLuint planeIndices[] =
     
     glBindVertexArrayOES(_vertexArray[0]);
     // draw crate
-    for (int i = 0; i < 6; i++) {
-        glBindTexture(GL_TEXTURE_2D, crateTexture);
-        glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _crateModelViewProjectionMatrix[i].m);
-        glUniformMatrix3fv(uniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _crateNormalMatrix[i].m);
-        glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEW_MATRIX], 1, 0, _crateModelViewMatrix[i].m);
-        
-        // Select VBO and draw
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    }
+//    for (int i = 0; i < 6; i++) {
+//        glBindTexture(GL_TEXTURE_2D, crateTexture);
+//        glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEWPROJECTION_MATRIX], 1, 0, _crateModelViewProjectionMatrix[i].m);
+//        glUniformMatrix3fv(uniforms[UNIFORM_NORMAL_MATRIX], 1, 0, _crateNormalMatrix[i].m);
+//        glUniformMatrix4fv(uniforms[UNIFORM_MODELVIEW_MATRIX], 1, 0, _crateModelViewMatrix[i].m);
+//        
+//        // Select VBO and draw
+//        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indexBuffer);
+//        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+//    }
     
     // draw floors
     for (int i = 0; i < 16; i++) {
@@ -561,38 +590,40 @@ GLuint planeIndices[] =
     }
     
     // draw walls
-    for (int i = 0; i < 64; i+=4) {
-        int row = i / 4 % 4;
-        int col = i / 4 / 4;
-        
-        if ([self.maze northWallPresent:row col:col] && [self.maze southWallPresent:row col:col]) {
-            glBindTexture(GL_TEXTURE_2D, wallTexture);
-            [self drawWall:i];
-            [self drawWall:i+2];
+    if (drawWalls) {
+        for (int i = 0; i < 64; i+=4) {
+            int row = i / 4 % 4;
+            int col = i / 4 / 4;
             
-        } else if (![self.maze northWallPresent:row col:col] && ![self.maze southWallPresent:row col:col]) {
-            glBindTexture(GL_TEXTURE_2D, wall2Texture);
-        } else if ([self.maze northWallPresent:row col:col]) {
-            glBindTexture(GL_TEXTURE_2D, wall3Texture);
-            [self drawWall:i];
-        } else {
-            glBindTexture(GL_TEXTURE_2D, wall4Texture);
-            [self drawWall:i+2];
-        }
-        
-        if ([self.maze westWallPresent:row col:col] && [self.maze eastWallPresent:row col:col]) {
-            glBindTexture(GL_TEXTURE_2D, wallTexture);
-            [self drawWall:i+1];
-            [self drawWall:i+3];
+            if ([self.maze northWallPresent:row col:col] && [self.maze southWallPresent:row col:col]) {
+                glBindTexture(GL_TEXTURE_2D, wallTexture);
+                [self drawWall:i];
+                [self drawWall:i+2];
+                
+            } else if (![self.maze northWallPresent:row col:col] && ![self.maze southWallPresent:row col:col]) {
+                glBindTexture(GL_TEXTURE_2D, wall2Texture);
+            } else if ([self.maze northWallPresent:row col:col]) {
+                glBindTexture(GL_TEXTURE_2D, wall3Texture);
+                [self drawWall:i];
+            } else {
+                glBindTexture(GL_TEXTURE_2D, wall4Texture);
+                [self drawWall:i+2];
+            }
             
-        } else if (![self.maze westWallPresent:row col:col] && ![self.maze eastWallPresent:row col:col]) {
-            glBindTexture(GL_TEXTURE_2D, wall2Texture);
-        } else if ([self.maze westWallPresent:row col:col]) {
-            glBindTexture(GL_TEXTURE_2D, wall3Texture);
-            [self drawWall:i+1];
-        } else {
-            glBindTexture(GL_TEXTURE_2D, wall4Texture);
-            [self drawWall:i+3];
+            if ([self.maze westWallPresent:row col:col] && [self.maze eastWallPresent:row col:col]) {
+                glBindTexture(GL_TEXTURE_2D, wallTexture);
+                [self drawWall:i+1];
+                [self drawWall:i+3];
+                
+            } else if (![self.maze westWallPresent:row col:col] && ![self.maze eastWallPresent:row col:col]) {
+                glBindTexture(GL_TEXTURE_2D, wall2Texture);
+            } else if ([self.maze westWallPresent:row col:col]) {
+                glBindTexture(GL_TEXTURE_2D, wall3Texture);
+                [self drawWall:i+1];
+            } else {
+                glBindTexture(GL_TEXTURE_2D, wall4Texture);
+                [self drawWall:i+3];
+            }
         }
     }
 }
@@ -610,13 +641,7 @@ GLuint planeIndices[] =
 
 #pragma mark -  Input Handling
 - (void)hanldeDoubleTapFrom:(UITapGestureRecognizer *)recognizer {
-//    float aspect = fabs(self.view.bounds.size.width / self.view.bounds.size.height);
-//    _projectionMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(65.0f), aspect, 0.1f, 100.0f);
-//    _projectionMatrix = GLKMatrix4RotateY(_projectionMatrix, M_PI);
-//    _cameraDirection = SOUTH;
-//    _cameraPosition = GLKVector3Make(0, 0, 0);
-    
-    
+    // move forward
     GLKMatrix4 transform = GLKMatrix4Identity;
     // move camera back to origin
     transform = GLKMatrix4TranslateWithVector3(transform, GLKVector3Negate(_cameraPosition));
@@ -646,6 +671,10 @@ GLuint planeIndices[] =
         _cameraYRotation += (dx * 0.005f);
         _dragOldLocation = currentLocation;
     }
+}
+
+- (void)toggleWall:(UITapGestureRecognizer *)recognizer {
+    drawWalls = !drawWalls;
 }
 
 - (void)handleLongPressFrom:(UILongPressGestureRecognizer *)recognizer {
@@ -905,23 +934,74 @@ GLuint planeIndices[] =
     modelRotation = 0;
 }
 
--(void)updateModelPosition{
-    if(modelPosition.x >= 3){
-        deltaX = -0.01;
-    }
-    if(modelPosition.x <= 0){
-        deltaX = 0.01;
+-(void)updateModelPosition {
+    // check if will collide anything in fron of the model
+    GLKVector3 dogBox = GLKVector3MultiplyScalar(_dogBBoxSize, modelScale);
+    CGRect dogRect = CGRectMake(modelPosition.x - dogBox.x / 2, modelPosition.z - dogBox.z / 2, dogBox.x, dogBox.z);
+    if (modelRotation <= 0.01f && modelRotation >= - 0.01f) {
+        dogRect = CGRectOffset(dogRect, 0, -0.5f);
+        if (floorf(modelPosition.z) < -3) {
+            NSLog(@"Floor z position: %f", floorf(modelPosition.z));
+            modelPosition.z = -3;
+            modelRotation = M_PI_2;
+        } else if ([self.maze southWallPresent:fabsf(floorf(modelPosition.x)) col:fabsf(ceilf(modelPosition.z))]) {
+            if (CGRectIntersectsRect(dogRect, CGRectMake(floorf(modelPosition.x), ceilf(modelPosition.z) - 0.5f, 1, 0.001f))) {
+                NSLog(@"Will intersect wall");
+                modelRotation = M_PI_2;
+            }
+        }
+    } else if (modelRotation <= M_PI_2 + 0.01f && modelRotation >= M_PI_2 - 0.01f) {
+        dogRect = CGRectOffset(dogRect, 0.5f, 0);
+        if (floorf(modelPosition.x) > 2) {
+            modelPosition.x = 3;
+            modelRotation = M_PI;
+        } else if ([self.maze westWallPresent:fabsf(floorf(modelPosition.x)) col:fabsf(ceilf(modelPosition.z))]) {
+            if (CGRectIntersectsRect(dogRect, CGRectMake(floorf(modelPosition.x) + 0.5f, ceilf(modelPosition.z), 0.001f, 1))) {
+                NSLog(@"Will intersect wall");
+                modelRotation = M_PI;
+            }
+        }
+    } else if (modelRotation <= M_PI + 0.01f && modelRotation >= M_PI - 0.01f) {
+        dogRect = CGRectOffset(dogRect, 0, 0.5f);
+        if (floorf(modelPosition.z) < 0) {
+            modelPosition.z = 0;
+            modelRotation = -M_PI_2;
+        } else if ([self.maze northWallPresent:fabsf(floorf(modelPosition.x)) col:fabsf(ceilf(modelPosition.z))]) {
+            if (CGRectIntersectsRect(dogRect, CGRectMake(floorf(modelPosition.x), ceilf(modelPosition.z) -0.5f, 1, 0.001f))) {
+                NSLog(@"Will intersect wall");
+                modelRotation = -M_PI_2;
+            }
+        }
+    } else {
+        dogRect = CGRectOffset(dogRect, -0.5f, 0);
+        if (floorf(modelPosition.x) < 0) {
+            modelPosition.x = 0;
+            modelRotation = 0;
+        } else if ([self.maze eastWallPresent:fabsf(floorf(modelPosition.x)) col:fabsf(ceilf(modelPosition.z))]) {
+            if (CGRectIntersectsRect(dogRect, CGRectMake(floorf(modelPosition.x) + 0.5f, ceilf(modelPosition.z), 0.001f, 1))) {
+                NSLog(@"Will intersect wall");
+                modelRotation = 0;
+            }
+        }
     }
     
-    if(modelPosition.z >= 0){
-        deltaZ = -0.01;
-    }
-    if(modelPosition.z <= -3){
-        deltaZ = 0.01;
-    }
+    // move forward
+    GLKMatrix4 transform = GLKMatrix4Identity;
+    // move model back to origin
+    transform = GLKMatrix4TranslateWithVector3(transform, GLKVector3Negate(modelPosition));
     
-    modelPosition.x += deltaX;
-    modelPosition.z += deltaZ;
+    // rotate to original angle, move forward, adjust back to previous rotation
+    transform = GLKMatrix4RotateY(transform, -modelRotation);
+    transform = GLKMatrix4Translate(transform, 0, 0, -0.01);
+    transform = GLKMatrix4RotateY(transform, modelRotation);
+    
+    // move camera back to previous position
+    transform = GLKMatrix4TranslateWithVector3(transform, modelPosition);
+    
+    modelPosition = GLKMatrix4MultiplyVector3WithTranslation(transform, modelPosition);
+    
+//    NSLog(@"New camera rotation: %f", _cameraYRotation);
+//    NSLog(@"New camera position: %f, %f, %f", _cameraPosition.x, _cameraPosition.y, _cameraPosition.z);
 }
 
 -(BOOL)sameCell:(GLKVector3)obj1 : (GLKVector3)obj2{
