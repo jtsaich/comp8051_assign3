@@ -120,6 +120,8 @@ GLuint planeIndices[] =
     bool fogOn;
     bool nightOn;
     bool flashLightOn;
+    bool modelMoving;
+    bool canControl;
     
     GLKVector3 flashlightPosition;
     GLKVector3 diffuseLightPosition;
@@ -155,6 +157,11 @@ GLuint planeIndices[] =
     CGPoint _dragOldLocation;
     GLfloat _cameraYRotation;
     GLKVector3 _cameraPosition;
+    
+    float deltaX, deltaZ;
+    GLKVector3 modelPosition;
+    float modelScale;
+    float modelRotation;
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -198,10 +205,36 @@ GLuint planeIndices[] =
     
     
     UIPanGestureRecognizer *dragRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handleDragFrom:)];
+    dragRecognizer.maximumNumberOfTouches = 1;
     [self.view addGestureRecognizer:dragRecognizer];
     
     UILongPressGestureRecognizer *longPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPressFrom:)];
     [self.view addGestureRecognizer:longPressRecognizer];
+    
+    UITapGestureRecognizer *tripleFingerTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(toggleModelMovement:)];
+    tripleFingerTap.numberOfTapsRequired = 1;
+    tripleFingerTap.numberOfTouchesRequired = 3;
+    [self.view addGestureRecognizer:tripleFingerTap];
+    
+    UIPanGestureRecognizer *modelMoveGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveModel:)];
+    modelMoveGesture.minimumNumberOfTouches = 2;
+    modelMoveGesture.maximumNumberOfTouches = 3;
+    [self.view addGestureRecognizer:modelMoveGesture];
+    
+    UIPinchGestureRecognizer *scaleGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(scaleModel:)];
+    scaleGesture.delegate = self;
+    [self.view addGestureRecognizer:scaleGesture];
+    
+    
+    UIRotationGestureRecognizer *rotationGesture = [[UIRotationGestureRecognizer alloc] initWithTarget:self action:@selector(rotateModel:)];
+    rotationGesture.delegate = self;
+    [self.view addGestureRecognizer:rotationGesture];
+    
+    modelPosition = GLKVector3Make(0, 0, -1);
+    modelScale = 0.05f;
+    modelRotation = 0;
+    deltaX = 0.01;
+    deltaZ = 0.01;
     
 }
 
@@ -454,15 +487,25 @@ GLuint planeIndices[] =
         _crateModelViewProjectionMatrix[i] = GLKMatrix4Multiply(_projectionMatrix, _crateModelViewMatrix[i]);
     }
     
+    if(modelMoving){
+        [self updateModelPosition];
+    }
+    
     _dogModelViewMatrix = GLKMatrix4Identity;
     _dogModelViewMatrix = GLKMatrix4Translate(_dogModelViewMatrix, 0, -0.5f, 0);
-    _dogModelViewMatrix = GLKMatrix4Scale(_dogModelViewMatrix, 0.05f, 0.05f, 0.05f);
+    _dogModelViewMatrix = GLKMatrix4TranslateWithVector3(_dogModelViewMatrix, modelPosition);
+    _dogModelViewMatrix = GLKMatrix4Scale(_dogModelViewMatrix, modelScale, modelScale, modelScale);
+    _dogModelViewMatrix = GLKMatrix4RotateY(_dogModelViewMatrix, modelRotation);
+    // _dogModelViewMatrix = GLKMatrix4Scale(_dogModelViewMatrix, 0.05f, 0.05f, 0.05f);
     _dogModelViewMatrix = GLKMatrix4RotateY(_dogModelViewMatrix, M_PI_2);
-    _dogModelViewMatrix = GLKMatrix4Multiply(baseModelViewMatrix, _dogModelViewMatrix);
+    // _dogModelViewMatrix = GLKMatrix4Multiply(baseModelViewMatrix, _dogModelViewMatrix);
     _dogNormalMatrix = GLKMatrix3InvertAndTranspose(GLKMatrix4GetMatrix3(_dogModelViewMatrix), NULL);
     _dogModelViewProjectionmatrix = GLKMatrix4Multiply(_projectionMatrix, _dogModelViewMatrix);
     
     _crateRotation += self.timeSinceLastUpdate * 0.5f;
+    
+    canControl = [self sameCell:modelPosition :_cameraPosition];
+
 }
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
@@ -819,6 +862,76 @@ GLuint planeIndices[] =
 
 - (IBAction)toggleFlashLight:(id)sender {
     flashLightOn = !flashLightOn;
+}
+
+- (IBAction)toggleModelMovement:(id)sender {
+    modelMoving = !modelMoving;
+}
+
+- (IBAction)moveModel:(UIPanGestureRecognizer *)sender {
+    if(!modelMoving && canControl){
+        CGPoint p = [sender translationInView:self.view];
+        modelPosition.x += p.x * 0.00005;
+        if(sender.numberOfTouches == 2){
+            modelPosition.z += p.y * 0.00005;
+        }else{
+            modelPosition.y += p.y * 0.00005;
+        }
+    }
+}
+
+-(IBAction)scaleModel:(UIPinchGestureRecognizer* )sender{
+    if(!modelMoving && canControl){
+        float scale = 0;
+        if(sender.scale < 1){
+            scale = 1/sender.scale;
+            modelScale -= scale * 0.001f;
+        }else{
+            scale = sender.scale;
+            modelScale += scale * 0.001f;
+        }
+    }
+    
+}
+
+-(IBAction)rotateModel:(UIRotationGestureRecognizer* )sender{
+    modelRotation += sender.rotation * 0.1f;
+}
+- (IBAction)resetModelPos:(id)sender {
+    modelPosition = GLKVector3Make(0, 0, -1);
+    modelScale = 0.05f;
+    modelRotation = 0;
+}
+
+-(void)updateModelPosition{
+    if(modelPosition.x >= 3){
+        deltaX = -0.01;
+    }
+    if(modelPosition.x <= 0){
+        deltaX = 0.01;
+    }
+    
+    if(modelPosition.z >= 0){
+        deltaZ = -0.01;
+    }
+    if(modelPosition.z <= -3){
+        deltaZ = 0.01;
+    }
+    
+    modelPosition.x += deltaX;
+    modelPosition.z += deltaZ;
+}
+
+-(BOOL)sameCell:(GLKVector3)obj1 : (GLKVector3)obj2{
+    // Hack to fix coordinate system
+    GLKVector3 flipped = GLKVector3Make(obj2.x * -1, obj2.y, obj2.z * -1);
+    float distance = GLKVector2Distance(GLKVector2Make(obj1.x, obj1.z), GLKVector2Make(flipped.x, flipped.z));
+    return distance < 2;
+}
+
+
+-(BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer{
+    return true;
 }
 
 @end

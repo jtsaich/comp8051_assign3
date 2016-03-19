@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9532" systemVersion="15D21" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BV1-FR-VrT">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9531" systemVersion="15D21" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BV1-FR-VrT">
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9530"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9529"/>
+        <capability name="Alignment constraints with different attributes" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
@@ -39,13 +40,24 @@
                                     <action selector="toggleFog:" destination="BV1-FR-VrT" eventType="touchUpInside" id="alB-OI-3Lc"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="e7t-fo-k4K">
+                                <rect key="frame" x="490" y="436" width="72" height="30"/>
+                                <state key="normal" title="Reset Dog"/>
+                                <connections>
+                                    <action selector="resetModelPos:" destination="BV1-FR-VrT" eventType="touchUpInside" id="Jms-n4-ftd"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <gestureRecognizers/>
                         <constraints>
                             <constraint firstAttribute="trailingMargin" secondItem="7i2-xq-2Up" secondAttribute="trailing" id="FMP-Pw-hWE"/>
+                            <constraint firstItem="e7t-fo-k4K" firstAttribute="centerX" secondItem="7i2-xq-2Up" secondAttribute="leading" id="Gxe-hQ-mK1"/>
                             <constraint firstItem="aDp-Iy-22e" firstAttribute="top" secondItem="WdE-3d-zbu" secondAttribute="bottom" constant="8" id="Hit-r5-Aky"/>
                             <constraint firstAttribute="trailingMargin" secondItem="WdE-3d-zbu" secondAttribute="trailing" id="Put-RJ-zWt"/>
                             <constraint firstItem="WdE-3d-zbu" firstAttribute="top" secondItem="7i2-xq-2Up" secondAttribute="bottom" constant="8" id="SxM-x1-Dne"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="e7t-fo-k4K" secondAttribute="trailing" constant="-11" id="cWs-lZ-XVR"/>
+                            <constraint firstItem="7i2-xq-2Up" firstAttribute="top" secondItem="e7t-fo-k4K" secondAttribute="bottom" constant="8" id="uWp-F9-QkT"/>
                             <constraint firstItem="qHh-Mt-9TT" firstAttribute="top" secondItem="aDp-Iy-22e" secondAttribute="bottom" constant="20" id="wM7-tV-7AR"/>
                             <constraint firstAttribute="trailingMargin" secondItem="aDp-Iy-22e" secondAttribute="trailing" id="ycP-Ca-Cxr"/>
                         </constraints>
