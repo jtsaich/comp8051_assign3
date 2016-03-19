@@ -212,8 +212,8 @@ GLuint planeIndices[] =
     [self.view addGestureRecognizer:longPressRecognizer];
     
     UITapGestureRecognizer *tripleFingerTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(toggleModelMovement:)];
-    tripleFingerTap.numberOfTapsRequired = 1;
-    tripleFingerTap.numberOfTouchesRequired = 3;
+    tripleFingerTap.numberOfTapsRequired = 2;
+    tripleFingerTap.numberOfTouchesRequired = 2;
     [self.view addGestureRecognizer:tripleFingerTap];
     
     UIPanGestureRecognizer *modelMoveGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(moveModel:)];
@@ -895,7 +895,9 @@ GLuint planeIndices[] =
 }
 
 -(IBAction)rotateModel:(UIRotationGestureRecognizer* )sender{
-    modelRotation += sender.rotation * 0.1f;
+    if(!modelMoving && canControl){
+        modelRotation += sender.rotation * 0.1f;
+    }
 }
 - (IBAction)resetModelPos:(id)sender {
     modelPosition = GLKVector3Make(0, 0, -1);
